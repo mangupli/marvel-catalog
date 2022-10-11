@@ -1,6 +1,8 @@
 # marvel-catalog
 My pet-project to practice fetching data from open API and building react apps
 
+Deployed: https://marvelcatalog42.herokuapp.com/
+
 Open **Marvel API** used:
 https://developer.marvel.com/docs
 
