@@ -1,93 +1,64 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 
 import Spinner from '../spinner/Spinner';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import ErrorMessage from '../errorMessage/ErrorMessage'
 
 import './randomChar.scss';
 
 import mjolnir from '../../resources/img/mjolnir.png'; 
 
-class RandomChar extends Component {
+const RandomChar = (props) => {
 
-    state = {
-        character: {},
-        loading: true,
-        error: false
+    const [character, setCharacter] = useState({});
+    const {loading, error, getCharacter, clearError} = useMarvelService();
+
+    const onCharLoaded = (character) => {
+        setCharacter(character);
     }
-
-    marvelService = new MarvelService();
-
-    onCharLoaded = (character) => {
-        /* console.log(character); */
-        this.setState({
-            character, 
-            loading: false
-        });
-    }
-
-    onCharLoading = ()=> {
-        this.setState({
-            loading:true,
-            error: false});
-    }
-        
-
-    updateCharacter = () => {
-        this.onCharLoading();
+       
+    const updateCharacter = () => {
+        clearError();
         const id = Math.floor(Math.random() * (1011400 - 1011000)) + 1011000;
-        this.marvelService.getCharacter(id)
-            .then(this.onCharLoaded)
-            .catch(this.onError)
+        getCharacter(id)
+            .then(onCharLoaded)
     }
 
-    onError = () => {
-        this.setState({
-            loading: false,
-            error: true
-        });
-    }
+    useEffect(()=>{
+        updateCharacter();
+    }, []);
 
-    componentDidMount() {
-        this.updateCharacter();
-    }
+    const errorMessage = error ? <ErrorMessage/> : null;
+    const spinner = loading ? <Spinner/> : null;
+    const content = !(loading || error) ? <View character={character}/> : null;
 
-
-    render(){
-        const {character, loading, error} = this.state;    
-        const errorMessage = error ? <ErrorMessage/> : null;
-        const spinner = loading ? <Spinner/> : null;
-        const content = !(loading || error) ? <View character={character}/> : null;
-        
-/*         console.log('render'); */
-
-        return (
-            <div className="randomchar">
-                {errorMessage}
-                {spinner}
-                {content}
-                <div className="randomchar__static">
-                    <p className="randomchar__title">
-                        Random character for today!<br/>
-                        Do you want to get to know him better?
-                    </p>
-                    <p className="randomchar__title">
-                        Or choose another one
-                    </p>
-                    <button onClick={this.updateCharacter} className="button button__main">
-                        <div className="inner">try it</div>
-                    </button>
-                    <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
-                </div>
+    return (
+        <div className="randomchar">
+            {errorMessage}
+            {spinner}
+            {content}
+            <div className="randomchar__static">
+                <p className="randomchar__title">
+                    Random character for today!<br/>
+                    Do you want to get to know him better?
+                </p>
+                <p className="randomchar__title">
+                    Or choose another one
+                </p>
+                <button onClick={updateCharacter} className="button button__main">
+                    <div className="inner">try it</div>
+                </button>
+                <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
             </div>
-        )
-    }
+        </div>
+    )
+    
 }
 
 const View = ({character}) => {
     const {name, description, thumbnail, homepage, wiki} = character;
     let styleObj = {'objectFit' : 'cover'}; 
-    if(thumbnail.includes('image_not_available')){
+    if(thumbnail && thumbnail.includes('image_not_available')){
         styleObj = {objectFit : 'unset'};
     }
 
